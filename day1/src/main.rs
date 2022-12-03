@@ -1,4 +1,4 @@
-use std::{env, fs};
+use shared::read_file;
 
 #[derive(Debug)]
 struct Elf {
@@ -12,11 +12,7 @@ impl Elf {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let file_path = args.get(1).expect("No file path found in args!");
-    let file_path = file_path.as_str();
-    let content = fs::read_to_string(file_path.to_owned())
-        .expect(format!("Fail to read file {}", file_path).as_str());
+    let content = read_file();
     let mut elves = Vec::new();
     collect_elves(content, &mut elves);
     let elf_for_sacks = looking_elf_for_snacks(&elves);
