@@ -15,6 +15,14 @@ impl Stack {
     fn new() -> Self {
         Self { crates: Vec::new() }
     }
+
+    fn top_crate_name(&self) -> String {
+        let binding = self.crates.last();
+        if binding.is_none() {
+            return String::from(" ");
+        }
+        binding.unwrap().name.to_string()
+    }
 }
 
 #[derive(Debug)]
@@ -36,8 +44,20 @@ impl Move {
     }
 }
 
+enum CrateMover {
+    CM9000,
+    CM9001,
+}
+
 fn main() {
     let context = read_file();
+    let stacks = work_with_crate_mover(&context, CrateMover::CM9000);
+    println!("Part 1 answer is: {:?}", get_top_crate_names(stacks));
+    let stacks = work_with_crate_mover(&context, CrateMover::CM9001);
+    println!("Part 2 answer is: {:?}", get_top_crate_names(stacks));
+}
+
+fn work_with_crate_mover(context: &String, crate_mover: CrateMover) -> Vec<Stack> {
     let lines = context.lines().collect::<Vec<&str>>();
     let split_index = lines
         .iter()
@@ -47,38 +67,9 @@ fn main() {
     let mut stacks = parse_stacks(cargo_lines);
     let moves = parse_moves(move_lines);
     for a_move in moves {
-        apply_move(&mut stacks, &a_move);
+        apply_move(&crate_mover, &mut stacks, &a_move);
     }
-    println!(
-        "The answer is: {:?}",
-        stacks
-            .iter()
-            .map(|stack| stack
-                .crates
-                .last()
-                .unwrap_or(&Crate { name: ' ' })
-                .name
-                .to_string())
-            .collect::<Vec<String>>()
-            .join("")
-    )
-}
-
-fn apply_move(stacks: &mut Vec<Stack>, a_move: &Move) -> Option<()> {
-    let mut temp = Vec::new();
-    {
-        let from = stacks.get_mut(a_move.from - 1)?;
-        for _ in 0..a_move.amount {
-            temp.push(
-                from.crates
-                    .pop()
-                    .expect("Could not move without any crate!"),
-            )
-        }
-    }
-    let to = stacks.get_mut(a_move.to - 1)?;
-    to.crates.append(&mut temp);
-    Some(())
+    stacks
 }
 
 fn parse_stacks(cargo_lines: &[&str]) -> Vec<Stack> {
@@ -116,4 +107,33 @@ fn parse_moves(move_lines: &[&str]) -> Vec<Move> {
         }
     }
     moves
+}
+
+fn apply_move(crate_mover: &CrateMover, stacks: &mut Vec<Stack>, a_move: &Move) -> Option<()> {
+    let mut temp = Vec::new();
+    {
+        let from = stacks.get_mut(a_move.from - 1)?;
+        for _ in 0..a_move.amount {
+            temp.push(
+                from.crates
+                    .pop()
+                    .expect("Could not move without any crate!"),
+            )
+        }
+    }
+    if let CrateMover::CM9001 = crate_mover {
+        temp.reverse()
+    }
+    let to = stacks.get_mut(a_move.to - 1)?;
+    to.crates.append(&mut temp);
+    Some(())
+}
+
+fn get_top_crate_names(stacks: Vec<Stack>) -> String {
+    let top_crate_names = stacks
+        .iter()
+        .map(|stack| stack.top_crate_name())
+        .collect::<Vec<String>>()
+        .join("");
+    top_crate_names
 }
