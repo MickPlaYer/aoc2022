@@ -1,6 +1,6 @@
 use fmt_derive::Debug;
 use regex::Regex;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, cmp::Ordering, rc::Rc};
 type CellNode = Rc<RefCell<Node>>;
 
 #[derive(Debug)]
@@ -148,13 +148,17 @@ impl Shell {
         }
     }
 
-    pub fn search(&self, size_at_most: usize) -> Vec<SearchResult> {
+    pub fn search(&self, size_filter: &dyn Fn(usize) -> bool) -> Vec<SearchResult> {
         let mut result = Vec::new();
-        Self::search_internal(&mut result, self.root.clone(), size_at_most);
+        Self::search_internal(&mut result, self.root.clone(), size_filter);
         result
     }
 
-    fn search_internal(result: &mut Vec<SearchResult>, node: CellNode, size_at_most: usize) {
+    fn search_internal(
+        result: &mut Vec<SearchResult>,
+        node: CellNode,
+        size_filter: &dyn Fn(usize) -> bool,
+    ) {
         if let Node::Dir {
             parent: _,
             name: _,
@@ -162,7 +166,7 @@ impl Shell {
         } = &*node.borrow()
         {
             let size = node.borrow().size();
-            if size <= size_at_most {
+            if size_filter(size) {
                 result.push(SearchResult {
                     node: node.clone(),
                     size,
@@ -170,14 +174,39 @@ impl Shell {
             }
             children
                 .iter()
-                .for_each(|node| Self::search_internal(result, node.clone(), size_at_most))
+                .for_each(|node| Self::search_internal(result, node.clone(), &size_filter))
         }
+    }
+
+    pub fn root_size(&self) -> usize {
+        self.root.borrow().size()
     }
 }
 
+#[derive(Debug)]
 pub struct SearchResult {
     pub node: CellNode,
     pub size: usize,
+}
+
+impl Ord for SearchResult {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.size.cmp(&other.size)
+    }
+}
+
+impl PartialOrd for SearchResult {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Eq for SearchResult {}
+
+impl PartialEq for SearchResult {
+    fn eq(&self, other: &Self) -> bool {
+        self.size == other.size
+    }
 }
 
 #[derive(Debug)]
