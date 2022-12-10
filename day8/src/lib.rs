@@ -140,18 +140,90 @@ impl Grid<Tree> {
         }
         Grid::new(self.we_size, self.ns_size, items)
     }
+
+    fn get(&self, x: usize, y: usize) -> Option<&Tree> {
+        let index = x + y * self.we_size;
+        self.items.get(index)
+    }
 }
 
-pub fn process_part1(content: String) -> Option<usize> {
-    let mut trees = parse_trees(content);
-    let mut visiable_trees = Grid::new_with_item(trees.we_size, trees.ns_size, false);
-    for _ in 0..4 {
-        let new_visiable_trees = &trees.visiable_trees_from_west();
-        visiable_trees.merge_with_or(new_visiable_trees);
-        trees = trees.rotate();
-        visiable_trees = visiable_trees.rotate();
+struct ViewingDistanceCalculator {
+    trees: Grid<Tree>,
+}
+
+impl ViewingDistanceCalculator {
+    fn new(trees: Grid<Tree>) -> Self {
+        Self { trees }
     }
-    Some(visiable_trees.iter().filter(|e| **e).count())
+
+    fn execute(&self) -> Grid<usize> {
+        let mut distances = Vec::new();
+        let we_size = self.trees.we_size;
+        let ns_size = self.trees.ns_size;
+        for x in 0..we_size {
+            for y in 0..ns_size {
+                distances.push(
+                    self.look_north(x, y)
+                        * self.look_west(x, y)
+                        * self.look_east(x, y)
+                        * self.look_south(x, y),
+                )
+            }
+        }
+        Grid::new(we_size, ns_size, distances)
+    }
+
+    fn look_west(&self, x: usize, y: usize) -> usize {
+        let mut count = 0;
+        let tree = self.trees.get(x, y).unwrap();
+        for x in (0..x).rev() {
+            let next_tree = self.trees.get(x, y).unwrap();
+            count += 1;
+            if next_tree.height >= tree.height {
+                break;
+            }
+        }
+        count
+    }
+
+    fn look_east(&self, x: usize, y: usize) -> usize {
+        let mut count = 0;
+        let tree = self.trees.get(x, y).unwrap();
+        for x in (x + 1)..self.trees.we_size {
+            let next_tree = self.trees.get(x, y).unwrap();
+            count += 1;
+            if next_tree.height >= tree.height {
+                break;
+            }
+        }
+        count
+    }
+
+    fn look_north(&self, x: usize, y: usize) -> usize {
+        let mut count = 0;
+        let tree = self.trees.get(x, y).unwrap();
+        for y in (0..y).rev() {
+            let next_tree = self.trees.get(x, y).unwrap();
+            count += 1;
+            if next_tree.height >= tree.height {
+                break;
+            }
+        }
+        count
+    }
+
+    fn look_south(&self, x: usize, y: usize) -> usize {
+        let mut count = 0;
+        let tree = self.trees.get(x, y).unwrap();
+        for y in (y + 1)..self.trees.ns_size {
+            let next_tree = self.trees.get(x, y).unwrap();
+            count += 1;
+            if next_tree.height >= tree.height {
+                break;
+            }
+        }
+        count
+    }
 }
 
 fn parse_trees(content: String) -> Grid<Tree> {
@@ -171,8 +243,22 @@ fn parse_trees(content: String) -> Grid<Tree> {
     Grid::new(we_size, ns_size, trees)
 }
 
+pub fn process_part1(content: String) -> Option<usize> {
+    let mut trees = parse_trees(content);
+    let mut visiable_trees = Grid::new_with_item(trees.we_size, trees.ns_size, false);
+    for _ in 0..4 {
+        let new_visiable_trees = &trees.visiable_trees_from_west();
+        visiable_trees.merge_with_or(new_visiable_trees);
+        trees = trees.rotate();
+        visiable_trees = visiable_trees.rotate();
+    }
+    Some(visiable_trees.iter().filter(|e| **e).count())
+}
+
 pub fn process_part2(content: String) -> Option<usize> {
-    None
+    let trees = parse_trees(content);
+    let distances = ViewingDistanceCalculator::new(trees).execute();
+    distances.iter().map(|e| *e).max()
 }
 
 #[cfg(test)]
@@ -213,13 +299,13 @@ mod tests {
     fn process_part2_with_sample() {
         let content = read_sample(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(8), answer);
     }
 
     #[test]
     fn process_part2_with_input() {
         let content = read_input(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(474606), answer);
     }
 }
