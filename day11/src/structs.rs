@@ -21,10 +21,12 @@ impl Monkey {
         }
     }
 
-    pub fn inspect_item(&mut self) -> Option<(usize, usize)> {
+    pub fn inspect_item(&mut self, very_worried: bool) -> Option<(usize, usize)> {
         let item = self.items.pop()?;
-        let item = self.operation.execute(item);
-        let item = item / 3;
+        let mut item = self.operation.execute(item);
+        if !very_worried {
+            item = item / 3;
+        }
         let monkey_id = self.test.execute(item);
         self.inspected_times += 1;
         Some((item, monkey_id))
@@ -32,6 +34,10 @@ impl Monkey {
 
     pub fn push_item(&mut self, item: usize) {
         self.items.push(item);
+    }
+
+    pub fn get_test_divisible_by(&self) -> usize {
+        self.test.divisible_by
     }
 }
 
