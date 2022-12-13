@@ -15,10 +15,7 @@ cargo run --bin day1 -- files/day1/sample1.txt
 ## Day 6 ~
 Create a new day
 ``` sh
-cargo new --vcs=none --lib day6
-mkdir files/day6
-touch files/day6/sample.txt
-touch files/day6/input.txt
+cargo run -p script -- --new-day 12
 ```
 
 Test a day

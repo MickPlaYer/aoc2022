@@ -12,6 +12,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bpaf"
+version = "0.7.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e95b1464dea6edc21be413bf260662aef39490e150455ae3760019738600b4f"
+dependencies = [
+ "bpaf_derive",
+]
+
+[[package]]
+name = "bpaf_derive"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ed63113bfb3a9bb25dd131acdf0044c7404000ea57dd9eec1f221e3547b4748"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -218,6 +238,13 @@ name = "regex-syntax"
 version = "0.6.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
+
+[[package]]
+name = "script"
+version = "0.1.0"
+dependencies = [
+ "bpaf",
+]
 
 [[package]]
 name = "serde"
