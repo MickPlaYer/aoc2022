@@ -76,6 +76,11 @@ impl Cord {
     fn get_distance(&self) -> usize {
         *self.distance.borrow()
     }
+
+    fn reset(&self) {
+        *self.distance.borrow_mut() = usize::MAX;
+        *self.passed.borrow_mut() = false;
+    }
 }
 
 impl From<&Cord> for (usize, usize) {
@@ -145,7 +150,7 @@ impl HeightMap {
             history.sort_by(|a, b| b.get_distance().cmp(&a.get_distance()));
             let current = history.pop();
             if current.is_none() {
-                panic!("No path remain but still not get the point!");
+                return usize::MAX;
             }
             let current = current.unwrap();
             let neighbors = self.look_neighbors(current);
@@ -200,6 +205,19 @@ impl HeightMap {
         let row = self.grid.get(y)?;
         Some(row.get(x)?)
     }
+
+    fn all_points_with_height(&self, height: char) -> Vec<Point> {
+        self.grid
+            .iter()
+            .flatten()
+            .filter(|cord| cord.height == height)
+            .map(|e| Point::new(e.x, e.y))
+            .collect()
+    }
+
+    fn reset(&self) {
+        self.grid.iter().flatten().for_each(Cord::reset);
+    }
 }
 
 pub fn process_part1(content: String) -> Option<usize> {
@@ -208,7 +226,18 @@ pub fn process_part1(content: String) -> Option<usize> {
 }
 
 pub fn process_part2(content: String) -> Option<usize> {
-    None
+    let mut height_map = HeightMap::parse(content);
+    let points = height_map.all_points_with_height('a');
+    let mut distance_list = points
+        .into_iter()
+        .map(|point| {
+            height_map.start_point = point;
+            height_map.reset();
+            height_map.search_path_dijkstra()
+        })
+        .collect::<Vec<usize>>();
+    distance_list.sort();
+    distance_list.first().copied()
 }
 
 #[cfg(test)]
@@ -235,13 +264,13 @@ mod tests {
     fn process_part2_with_sample() {
         let content = read_sample(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(29), answer);
     }
 
     #[test]
     fn process_part2_with_input() {
         let content = read_input(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(399), answer);
     }
 }
