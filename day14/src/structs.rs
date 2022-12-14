@@ -84,7 +84,7 @@ fn generate_wall(last_point: Option<&Point>, point: &Point, points: &mut Vec<Poi
 
 pub struct BigMap {
     sand: Point,
-    rocks: Vec<Rock>,
+    floor: Option<usize>,
     map: HashMap<Point, bool>,
     boundary: (usize, usize, usize, usize),
 }
@@ -102,36 +102,58 @@ impl BigMap {
         }
         BigMap {
             sand,
-            rocks,
+            floor: None,
             map,
             boundary,
         }
+    }
+
+    pub fn new_with_floor(rocks: Vec<Rock>) -> Self {
+        let mut big_map = Self::new(rocks);
+        big_map.floor = Some(big_map.bottom() + 2);
+        big_map
     }
 
     fn bottom(&self) -> usize {
         self.boundary.3
     }
 
+    fn is_block(&self, sand: Point) -> bool {
+        let block_by_rocks = *self.map.get(&sand).unwrap_or(&false);
+        let block_by_floor = match self.floor {
+            Some(floor) => sand.y >= floor,
+            None => false,
+        };
+        block_by_rocks || block_by_floor
+    }
+
+    fn is_stoped(&self, sand: Point) -> bool {
+        match self.floor {
+            Some(_) => self.is_block(self.sand),
+            None => sand.y > self.bottom(),
+        }
+    }
+
     pub fn drop_sand(&mut self) -> bool {
         let mut sand = self.sand.clone();
         loop {
-            if sand.y > self.bottom() {
-                return false;
+            if self.is_stoped(sand) {
+                return true;
             }
-            if !self.map.get(&sand.down()).unwrap_or(&false) {
+            if !self.is_block(sand.down()) {
                 sand = sand.down();
                 continue;
             }
-            if !self.map.get(&sand.down_left()).unwrap_or(&false) {
+            if !self.is_block(sand.down_left()) {
                 sand = sand.down_left();
                 continue;
             }
-            if !self.map.get(&sand.down_right()).unwrap_or(&false) {
+            if !self.is_block(sand.down_right()) {
                 sand = sand.down_right();
                 continue;
             }
             self.map.insert(sand, true);
-            return true;
+            return false;
         }
     }
 }

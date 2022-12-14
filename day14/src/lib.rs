@@ -4,22 +4,30 @@ mod structs;
 use parser::parse;
 use structs::BigMap;
 
-pub fn process_part1(content: String) -> Option<usize> {
-    let rocks = content.lines().map(parse).collect();
-    let mut big_map = BigMap::new(rocks);
+fn simulate_sand_drop(mut big_map: BigMap) -> usize {
     let mut sand_count = 0;
     loop {
-        let rest = big_map.drop_sand();
-        if !rest {
+        let is_stoped = big_map.drop_sand();
+        if is_stoped {
             break;
         };
         sand_count += 1;
     }
+    sand_count
+}
+
+pub fn process_part1(content: String) -> Option<usize> {
+    let rocks = content.lines().map(parse).collect();
+    let big_map = BigMap::new(rocks);
+    let sand_count = simulate_sand_drop(big_map);
     Some(sand_count)
 }
 
 pub fn process_part2(content: String) -> Option<usize> {
-    None
+    let rocks = content.lines().map(parse).collect();
+    let big_map = BigMap::new_with_floor(rocks);
+    let sand_count = simulate_sand_drop(big_map);
+    Some(sand_count)
 }
 
 #[cfg(test)]
@@ -46,13 +54,13 @@ mod tests {
     fn process_part2_with_sample() {
         let content = read_sample(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(93), answer);
     }
 
     #[test]
     fn process_part2_with_input() {
         let content = read_input(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(25055), answer);
     }
 }
