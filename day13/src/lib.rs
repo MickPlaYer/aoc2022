@@ -1,7 +1,8 @@
 mod parser;
+mod structs;
 
-use parser::{parse, Element};
-use std::cmp::Ordering;
+use parser::parse;
+use structs::Element;
 
 pub fn process_part1(content: String) -> Option<usize> {
     let mut pairs = Vec::new();
@@ -13,8 +14,7 @@ pub fn process_part1(content: String) -> Option<usize> {
     let mut sum = 0;
     for (index, (left, right)) in pairs.into_iter().enumerate() {
         let pair_number = index + 1;
-        let result = compare(&left, &right);
-        println!("{}: {:?}", pair_number, result);
+        let result = left.cmp(&right);
         if result.is_le() {
             sum += pair_number;
         }
@@ -22,37 +22,22 @@ pub fn process_part1(content: String) -> Option<usize> {
     Some(sum)
 }
 
-fn compare(left: &Element, right: &Element) -> Ordering {
-    match (&left, &right) {
-        (Element::Atom(left), Element::Atom(right)) => left.cmp(&right),
-        (Element::Atom(_), Element::List(_)) => compare(&left.to_list(), right),
-        (Element::List(_), Element::Atom(_)) => compare(left, &right.to_list()),
-        (Element::List(left), Element::List(right)) => compare_list(left, right),
-    }
-}
-
-fn compare_list(left: &Vec<Element>, right: &Vec<Element>) -> Ordering {
-    let mut finger: usize = 0;
-    loop {
-        let left = left.get(finger);
-        let right = right.get(finger);
-        match (left, right) {
-            (None, None) => return Ordering::Equal,
-            (None, Some(_)) => return Ordering::Less,
-            (Some(_), None) => return Ordering::Greater,
-            (Some(left), Some(right)) => {
-                let ordering = compare(left, right);
-                if !ordering.is_eq() {
-                    return ordering;
-                }
-            }
-        }
-        finger += 1;
-    }
-}
-
 pub fn process_part2(content: String) -> Option<usize> {
-    None
+    let divider_packets = [parse("[[2]]").unwrap(), parse("[[6]]").unwrap()];
+    let mut packets = content
+        .lines()
+        .filter_map(|line| if line == "" { None } else { parse(line) })
+        .collect::<Vec<Element>>();
+    packets.extend_from_slice(&divider_packets);
+    packets.sort();
+    let mut decoder_key = 1;
+    for (index, packet) in packets.into_iter().enumerate() {
+        let pair_number = index + 1;
+        if divider_packets.contains(&packet) {
+            decoder_key *= pair_number;
+        }
+    }
+    Some(decoder_key)
 }
 
 #[cfg(test)]
@@ -79,13 +64,13 @@ mod tests {
     fn process_part2_with_sample() {
         let content = read_sample(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(140), answer);
     }
 
     #[test]
     fn process_part2_with_input() {
         let content = read_input(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(20570), answer);
     }
 }

@@ -1,3 +1,4 @@
+use crate::structs::Element;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -6,21 +7,6 @@ use nom::{
     sequence::{delimited, preceded},
     IResult,
 };
-
-#[derive(PartialEq, Debug, Clone)]
-pub enum Element {
-    Atom(usize),
-    List(Vec<Element>),
-}
-
-impl Element {
-    pub fn to_list(&self) -> Element {
-        match self {
-            Element::Atom(_) => Element::List(vec![self.clone()]),
-            Element::List(_) => self.clone(),
-        }
-    }
-}
 
 fn atom(input: &str) -> IResult<&str, Element> {
     let (input, number) = preceded(space0, digit1)(input)?;
