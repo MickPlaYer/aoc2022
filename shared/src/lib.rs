@@ -9,12 +9,20 @@ pub fn read_file() -> String {
 
 pub fn read_sample(day_num: usize) -> String {
     let sample_path = file_path(day_num, "sample.txt");
-    read_file_internal(&sample_path)
+    let content = read_file_internal(&sample_path);
+    if content.is_empty() {
+        panic!("sample.txt is empty!")
+    }
+    content
 }
 
 pub fn read_input(day_num: usize) -> String {
     let input_path = file_path(day_num, "input.txt");
-    read_file_internal(&input_path)
+    let content = read_file_internal(&input_path);
+    if content.is_empty() {
+        panic!("input.txt is empty!")
+    }
+    content
 }
 
 fn file_path(day_num: usize, file_name: &str) -> String {
