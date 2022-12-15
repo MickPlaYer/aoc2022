@@ -21,4 +21,6 @@ cargo run -p script -- --new-day 12
 Test a day
 ```
 cargo test -p day6
+# for speed
+cargo test --release -pday15
 ```

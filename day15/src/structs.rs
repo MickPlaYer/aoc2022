@@ -1,5 +1,6 @@
 use std::ops::RangeInclusive;
 
+#[derive(Debug)]
 pub struct Point {
     pub x: isize,
     pub y: isize,
@@ -43,13 +44,18 @@ impl Record {
     pub fn get_beacon(&self) -> &Point {
         &self.beacon
     }
+
+    pub fn get_sensor(&self) -> &Point {
+        &self.sensor
+    }
 }
 
 #[derive(Clone, Debug)]
 enum Mark {
     Empty,
-    Coverd,
+    Sensor,
     Beacon,
+    Coverd,
 }
 
 pub struct Boundary {
@@ -76,20 +82,26 @@ impl Boundary {
         self.set_mark(position, Mark::Beacon);
     }
 
+    pub fn set_sensor(&mut self, position: isize) {
+        self.set_mark(position, Mark::Sensor);
+    }
+
     pub fn set_coverd(&mut self, position: isize) {
         self.set_mark(position, Mark::Coverd);
     }
 
     fn set_mark(&mut self, position: isize, mark: Mark) {
-        if !(self.left..=self.right).contains(&position) {
-            panic!(
-                "out of range! {}..{}, {} = {:?}",
-                self.left, self.right, position, mark
-            )
-        }
-        let real_positon = (position - self.left) as usize;
+        let real_positon = self.real_positon(position);
         if let Mark::Empty = self.marks[real_positon] {
             self.marks[real_positon] = mark
         }
+    }
+
+    fn real_positon(&self, position: isize) -> usize {
+        if !(self.left..=self.right).contains(&position) {
+            panic!("out of range! {}..{}, {}", self.left, self.right, position)
+        }
+        let real_positon = (position - self.left) as usize;
+        real_positon
     }
 }

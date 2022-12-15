@@ -1,4 +1,8 @@
-use std::{env, fs};
+use std::{
+    env,
+    fs::{self, OpenOptions},
+    io::Write,
+};
 
 pub fn read_file() -> String {
     let args: Vec<String> = env::args().collect();
@@ -38,4 +42,12 @@ fn file_path(day_num: usize, file_name: &str) -> String {
 fn read_file_internal(file_path: &str) -> String {
     fs::read_to_string(file_path.to_owned())
         .expect(format!("Fail to read file {}", file_path).as_str())
+}
+
+pub fn log(text: &str) {
+    let root = env::current_dir().unwrap();
+    let root = root.parent().unwrap();
+    let binding = root.join("log").join("output.log");
+    let mut file = OpenOptions::new().append(true).open(binding).unwrap();
+    write!(file, "{}\n", text).unwrap();
 }
