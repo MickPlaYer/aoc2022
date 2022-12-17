@@ -27,14 +27,14 @@ pub fn convert_plan_to_paths(plan: Vec<&str>, dogs: &HashMap<&str, Rc<Dog>>) -> 
 }
 
 lazy_static! {
-    static ref HASHMAP: Mutex<HashMap<(String, String), usize>> = Mutex::new(HashMap::new());
+    static ref HASHMAP: Mutex<HashMap<String, usize>> = Mutex::new(HashMap::new());
 }
 
 pub fn get_cost(from_name: &str, to_name: &str, dogs: &HashMap<&str, Rc<Dog>>) -> usize {
     let mut cache = HASHMAP.lock().unwrap();
-    let mut cache_key = vec![from_name.to_string(), to_name.to_string()];
+    let mut cache_key = vec![from_name, to_name];
     cache_key.sort();
-    let cache_key = (cache_key.pop().unwrap(), cache_key.pop().unwrap());
+    let cache_key = cache_key.join("|");
     if cache.contains_key(&cache_key) {
         return *cache.get(&cache_key).unwrap();
     };

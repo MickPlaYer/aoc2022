@@ -24,6 +24,9 @@ pub fn process_part1(content: String) -> Option<usize> {
             Some(valve.get_name())
         })
         .collect::<Vec<_>>();
+    for pair in closed_valves.iter().combinations(2) {
+        get_cost(pair[0], pair[1], &dogs);
+    }
     let size = closed_valves.len();
     let result = idk_maybe_use_the_dfs_to_plan_the_order_then_open_valves(
         size,
@@ -42,19 +45,24 @@ fn idk_maybe_use_the_dfs_to_plan_the_order_then_open_valves(
     dogs: &HashMap<&str, Rc<Dog>>,
     valves_map: &HashMap<String, Valve>,
 ) -> usize {
+    let mut result = 0;
     let mut all_paths = Vec::new();
-    let mut dfs = Vec::new();
-    dfs.push(("AA", Vec::new(), Vec::new()));
+    let mut dfs_stack = Vec::new();
+    dfs_stack.push(("AA", Vec::new(), 0));
     loop {
-        if dfs.is_empty() {
+        if dfs_stack.is_empty() {
             break;
         }
-        let (from, visited, total_costs) = dfs.pop().unwrap();
-        let total_cost: usize = total_costs.iter().sum();
+        let (from, visited, total_cost) = dfs_stack.pop().unwrap();
         if visited.len() == size || total_cost >= time {
             let mut plan = visited.clone();
             plan.reverse();
             let paths = convert_plan_to_paths(plan, &dogs);
+            let total_released_pressure =
+                calculate_total_released_pressure(paths.clone(), &valves_map, time);
+            if total_released_pressure > result {
+                result = total_released_pressure;
+            }
             all_paths.push(paths);
             continue;
         }
@@ -64,18 +72,8 @@ fn idk_maybe_use_the_dfs_to_plan_the_order_then_open_valves(
             }
             let cost = get_cost(from, to, &dogs);
             let mut new_visited = vec![to.clone()];
-            let mut new_total_costs = vec![cost];
             new_visited.append(&mut visited.clone());
-            new_total_costs.append(&mut total_costs.clone());
-            dfs.push((*to, new_visited, new_total_costs));
-        }
-    }
-    let mut result = 0;
-    for paths in all_paths {
-        let total_released_pressure =
-            calculate_total_released_pressure(paths.clone(), &valves_map, time);
-        if total_released_pressure > result {
-            result = total_released_pressure;
+            dfs_stack.push((*to, new_visited, total_cost + cost));
         }
     }
     result
