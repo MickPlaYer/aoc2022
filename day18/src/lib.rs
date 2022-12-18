@@ -2,27 +2,40 @@ mod parser;
 mod structs;
 
 use parser::parse_line;
-use structs::Point;
+use structs::{Cube, Space};
 
-pub fn process_part1(content: String) -> Option<usize> {
-    let mut points = Vec::new();
+fn get_attched_cubes(content: String) -> Vec<Cube> {
+    let mut cubes = Vec::new();
     for line in content.lines() {
         let (x, y, z) = parse_line(line);
-        let mut new_point = Point::new(x, y, z);
-        for point in points.iter_mut() {
-            new_point.attch(point);
+        let mut new_cube = Cube::new(x, y, z);
+        for cube in cubes.iter_mut() {
+            new_cube.attch(cube);
         }
-        points.push(new_point);
+        cubes.push(new_cube);
     }
-    let result = points
+    cubes
+}
+
+pub fn process_part1(content: String) -> Option<usize> {
+    let cubes = get_attched_cubes(content);
+    let result = cubes
         .into_iter()
-        .map(|point| point.get_face_count())
+        .map(|cube| cube.get_face_count())
         .sum::<usize>();
     Some(result)
 }
 
 pub fn process_part2(content: String) -> Option<usize> {
-    None
+    let cubes = get_attched_cubes(content);
+    let mut space = Space::from_cubes(cubes);
+    space.expend_empty_from_edge();
+    space.draw();
+    space.fill_uncheck_with_cube();
+    println!("=== after ===");
+    space.draw();
+    let result = space.get_total_face_count();
+    Some(result)
 }
 
 #[cfg(test)]
@@ -49,13 +62,13 @@ mod tests {
     fn process_part2_with_sample() {
         let content = read_sample(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(58), answer);
     }
 
     #[test]
     fn process_part2_with_input() {
         let content = read_input(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(1986), answer);
     }
 }
