@@ -23,7 +23,6 @@ impl RobotType {
 
 #[derive(Default, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct State {
-    pub time: usize,
     pub ore_robots: usize,
     pub clay_robots: usize,
     pub obsidian_robots: usize,
@@ -38,7 +37,6 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         Self {
-            time: 0,
             ore_robots: 1,
             ..Default::default()
         }
@@ -52,7 +50,6 @@ impl State {
     }
 
     pub fn try_build_robot(mut self, blueprint: &Blueprint) -> Vec<Self> {
-        self.time += 1;
         let mut futures = Vec::new();
 
         let robot_type = RobotType::Geode;
