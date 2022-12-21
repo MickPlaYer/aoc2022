@@ -1,3 +1,4 @@
+use crate::{MonkeyRecord, MonkeyType, Number, OperationType};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -5,8 +6,7 @@ use nom::{
     sequence::{delimited, separated_pair, tuple},
     IResult,
 };
-
-use crate::{MonkeyRecord, MonkeyType, OperationType};
+use std::collections::HashMap;
 
 fn operation_type(input: &str) -> IResult<&str, OperationType> {
     let (input, char) = delimited(space0, one_of("+-*/"), space0)(input)?;
@@ -30,7 +30,7 @@ fn monkey_type_operator(input: &str) -> IResult<&str, MonkeyRecord> {
 fn monkey_type_yell(input: &str) -> IResult<&str, MonkeyRecord> {
     let (input, (name, number)) = separated_pair(alpha1, tag(": "), digit1)(input)?;
     let number = number.parse().unwrap();
-    let monkey_type = MonkeyType::Yell(number);
+    let monkey_type = MonkeyType::Yell(Number::M(number));
     Ok((input, MonkeyRecord::new(name.into(), monkey_type)))
 }
 
@@ -39,9 +39,11 @@ fn parse_line(input: &str) -> IResult<&str, MonkeyRecord> {
     Ok((input, monkey_record))
 }
 
-pub(crate) fn parse(input: &str) -> Vec<MonkeyRecord> {
-    input
-        .lines()
-        .map(|line| parse_line(line).unwrap().1)
-        .collect()
+pub(crate) fn parse(input: &str) -> HashMap<String, MonkeyRecord> {
+    let mut hash_map = HashMap::new();
+    for line in input.lines() {
+        let (_, monkey) = parse_line(line).unwrap();
+        hash_map.insert(monkey.name.clone(), monkey);
+    }
+    hash_map
 }
