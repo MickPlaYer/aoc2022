@@ -1,9 +1,9 @@
-use crate::structs::{MonkeyMap, StepType, TileType};
+use crate::structs::{HumanMap, MonkeyMap, StepType, TileType};
 use nom::{branch::alt, bytes::complete::tag, character::complete::digit1, multi::many1, IResult};
 
 fn parse_full_map(lines: &mut std::str::Lines) -> Vec<Vec<TileType>> {
     let mut full_map = Vec::new();
-    let mut max_length = 0;
+    let mut x_size = 0;
     loop {
         let line = lines.next().unwrap();
         if line == "" {
@@ -19,29 +19,29 @@ fn parse_full_map(lines: &mut std::str::Lines) -> Vec<Vec<TileType>> {
             };
             row.push(tile_type);
         }
-        if row.len() > max_length {
-            max_length = row.len();
+        if row.len() > x_size {
+            x_size = row.len();
         }
         full_map.push(row);
     }
+    let mut full_map = full_map;
     for row in full_map.iter_mut() {
-        while row.len() < max_length {
+        while row.len() < x_size {
             row.push(TileType::Void);
         }
     }
-
     for row in full_map.iter() {
         for tile_type in row.iter() {
             let char = match tile_type {
-                TileType::Void => '?',
-                TileType::Wall => '#',
-                TileType::Open => '.',
+                TileType::Void => '⬛',
+                TileType::Wall => '🌚',
+                TileType::Open => '⬜',
             };
             print!("{}", char);
         }
         println!();
     }
-
+    println!();
     full_map
 }
 
@@ -60,9 +60,16 @@ fn parse_path(input: &str) -> IResult<&str, Vec<StepType>> {
     Ok((input, step))
 }
 
-pub fn parse(input: &str) -> MonkeyMap {
+pub fn parse_part1(input: &str) -> MonkeyMap {
     let mut lines = input.lines();
     let full_map = parse_full_map(&mut lines);
     let (_, path) = parse_path(lines.next().unwrap()).unwrap();
     MonkeyMap::new(full_map, path)
+}
+
+pub fn parse_part2(input: &str, face_size: usize) -> HumanMap {
+    let mut lines = input.lines();
+    let full_map = parse_full_map(&mut lines);
+    let (_, path) = parse_path(lines.next().unwrap()).unwrap();
+    HumanMap::new(full_map, path, face_size)
 }
