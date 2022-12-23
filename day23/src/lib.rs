@@ -9,15 +9,25 @@ use structs::Direction;
 pub fn process_part1(content: String) -> Option<usize> {
     let mut map = parse_map(content);
     draw_map(&map);
-    let mut directions = Direction::default_directions().into();
+    let mut directions = Direction::default_directions();
     for _ in 0..10 {
-        map = simluate_round(&map, &directions);
+        map = simluate_round(&map, &directions).unwrap();
         directions.rotate_left(1);
     }
     Some(count_empty_grounds(&map))
 }
 
 pub fn process_part2(content: String) -> Option<usize> {
+    let mut map = parse_map(content);
+    let mut directions = Direction::default_directions();
+    for round in 0.. {
+        let result = simluate_round(&map, &directions);
+        if result.is_err() {
+            return Some(round + 1);
+        }
+        map = result.unwrap();
+        directions.rotate_left(1);
+    }
     None
 }
 
@@ -45,13 +55,13 @@ mod tests {
     fn process_part2_with_sample() {
         let content = read_sample(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(20), answer);
     }
 
     #[test]
     fn process_part2_with_input() {
         let content = read_input(DAY_NUMBER);
         let answer = process_part2(content);
-        assert_eq!(Some(0), answer);
+        assert_eq!(Some(940), answer);
     }
 }

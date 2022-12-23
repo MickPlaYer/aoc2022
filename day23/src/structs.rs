@@ -74,9 +74,9 @@ impl Creature {
 }
 
 pub struct Proposal {
-    pub from: Coordinate,
-    pub to: Coordinate,
-    pub rejected: bool,
+    from: Coordinate,
+    to: Coordinate,
+    rejected: bool,
 }
 
 impl Proposal {
@@ -88,6 +88,10 @@ impl Proposal {
         }
     }
 
+    pub fn coordinate(&self) -> Coordinate {
+        self.to
+    }
+
     pub fn perform(self) -> Creature {
         let (x, y) = if self.rejected { self.from } else { self.to };
         Creature::new(x, y)
@@ -95,5 +99,13 @@ impl Proposal {
 
     pub fn reject(&mut self) {
         self.rejected = true
+    }
+
+    pub fn is_stay(&self) -> bool {
+        self.from == self.to
+    }
+
+    pub fn is_rejeted(&self) -> bool {
+        self.rejected
     }
 }
