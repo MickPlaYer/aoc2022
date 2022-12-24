@@ -4,7 +4,7 @@ use std::{collections::HashMap, fmt::Debug};
 type Point = (usize, usize);
 type SizeInfo = (usize, usize);
 
-struct State {
+pub struct State {
     wind_index: usize,
     point: Point,
     distance: usize,
@@ -21,7 +21,7 @@ impl Debug for State {
 }
 
 impl State {
-    fn new(wind_index: usize, point: Point) -> Self {
+    pub fn new(wind_index: usize, point: Point) -> Self {
         Self {
             wind_index,
             point,
@@ -29,20 +29,26 @@ impl State {
         }
     }
 
+    pub fn set_distance(&mut self, distance: usize) {
+        self.distance = distance;
+    }
+
+    pub fn get_distance(&self) -> usize {
+        self.distance
+    }
+
     fn hash(&self) -> (usize, Point) {
         (self.wind_index, self.point)
     }
 }
 
-pub fn find_the_shortest_path(all_wind_status: WindMaps) -> Option<usize> {
+pub fn find_the_shortest_path(all_wind_status: &WindMaps, from: State, to: Point) -> Option<State> {
     let size_info = get_outer_size(&all_wind_status);
-    let start_point = (1, 0);
-    let end_point = (size_info.0 - 2, size_info.1 - 1);
-    let mut start_state = State::new(0, start_point);
-    start_state.distance = 0;
+    let start_state = from;
+    let end_point = to;
     let mut visited = HashMap::new();
     let mut search = vec![start_state];
-    let end_state = loop {
+    loop {
         if search.is_empty() {
             break None;
         }
@@ -66,8 +72,7 @@ pub fn find_the_shortest_path(all_wind_status: WindMaps) -> Option<usize> {
             break Some(current_state);
         }
         visited.insert(current_state.hash(), current_state);
-    };
-    end_state.and_then(|state| Some(state.distance))
+    }
 }
 
 fn update_distance(current_state: &State, new_state: &mut State) {
