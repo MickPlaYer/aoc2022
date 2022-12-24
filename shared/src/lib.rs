@@ -3,6 +3,9 @@ use std::{
     fs::{self, OpenOptions},
     io::Write,
 };
+mod math;
+
+pub use math::lcm;
 
 pub fn read_file() -> String {
     let args: Vec<String> = env::args().collect();
